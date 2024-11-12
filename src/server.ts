@@ -4,9 +4,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 
 import authRouter from "./routes/v1/auth";
-import streakRouter from "./routes/v1/streak";
 import asyncHandler from "express-async-handler";
-import DcbService from "./services/dcbService";
 
 dotenv.config();
 
@@ -28,8 +26,7 @@ app.get("/", (req: Request, res: Response) => {
 // Define a route for the '/api/auth' path
 app.use("/api/v1/auth", authRouter);
 
-// Define a route for the '/api/streak' path
-app.use("/api/v1/streak", streakRouter);
+
 
 // Start the server and listen on the specified port
 app.listen(PORT, () => {
