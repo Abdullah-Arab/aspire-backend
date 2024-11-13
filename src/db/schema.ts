@@ -9,9 +9,18 @@ import {
   integer,
   date,
   uniqueIndex,
+  pgEnum,
 } from "drizzle-orm/pg-core";
 
 export const createTable = pgTableCreator((name) => `aspire_${name}`);
+
+// Define Enums
+export const priorityEnum = pgEnum("priority", ["High", "Medium", "Low"]);
+export const statusEnum = pgEnum("status", [
+  "In Progress",
+  "Completed",
+  "Pending",
+]);
 
 // Users Table
 export const users = createTable("users", {
@@ -20,6 +29,8 @@ export const users = createTable("users", {
   // phone: varchar("phone", { length: 255 }).unique(),
   name: varchar("name", { length: 255 }).notNull(),
   password: varchar("password", { length: 255 }).notNull(),
+  is_deleted: boolean("is_deleted").default(false),
+  deleted_at: timestamp("deleted_at"),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at")
     .defaultNow()
@@ -37,8 +48,12 @@ export const goals = createTable("goals", {
   category: varchar("category", { length: 100 }),
   target_date: date("target_date"),
   is_completed: boolean("is_completed").default(false),
+  is_deleted: boolean("is_deleted").default(false),
+  deleted_at: timestamp("deleted_at"),
   created_at: timestamp("created_at").defaultNow(),
-  updated_at: timestamp("updated_at").defaultNow().$onUpdateFn(() => new Date()),
+  updated_at: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdateFn(() => new Date()),
 });
 
 // Milestones Table
@@ -51,8 +66,13 @@ export const milestones = createTable("milestones", {
   description: text("description"),
   deadline: date("deadline"),
   is_completed: boolean("is_completed").default(false),
+  is_deleted: boolean("is_deleted").default(false),
+  deleted_at: timestamp("deleted_at"),
+
   created_at: timestamp("created_at").defaultNow(),
-  updated_at: timestamp("updated_at").defaultNow().$onUpdateFn(() => new Date()),
+  updated_at: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdateFn(() => new Date()),
 });
 
 // Tasks Table
@@ -63,27 +83,52 @@ export const tasks = createTable("tasks", {
     .notNull(),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
-  priority: varchar("priority", { length: 50 }), // e.g., "High", "Medium", "Low"
+  priority: priorityEnum("priority").default("Medium"),
   due_date: date("due_date"),
   is_completed: boolean("is_completed").default(false),
+  is_deleted: boolean("is_deleted").default(false),
+  deleted_at: timestamp("deleted_at"),
+
   created_at: timestamp("created_at").defaultNow(),
-  updated_at: timestamp("updated_at").defaultNow().$onUpdateFn(() => new Date()),
+  updated_at: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdateFn(() => new Date()),
 });
 
 // Progress Tracking Table
+// export const progress = createTable("progress", {
+//   id: uuid("id").defaultRandom().primaryKey(),
+//   user_id: uuid("user_id")
+//     .references(() => users.id)
+//     .notNull(),
+//   goal_id: uuid("goal_id").references(() => goals.id),
+//   milestone_id: uuid("milestone_id").references(() => milestones.id),
+//   task_id: uuid("task_id").references(() => tasks.id),
+//   status: varchar("status", { length: 100 }), // e.g., "In Progress", "Completed"
+//   progress_notes: text("progress_notes"),
+//   progress_date: timestamp("progress_date").defaultNow(),
+//   created_at: timestamp("created_at").defaultNow(),
+//   updated_at: timestamp("updated_at").defaultNow().$onUpdateFn(() => new Date()),
+// });
+
+// Polymorphic Progress Table
 export const progress = createTable("progress", {
   id: uuid("id").defaultRandom().primaryKey(),
   user_id: uuid("user_id")
     .references(() => users.id)
     .notNull(),
-  goal_id: uuid("goal_id").references(() => goals.id),
-  milestone_id: uuid("milestone_id").references(() => milestones.id),
-  task_id: uuid("task_id").references(() => tasks.id),
-  status: varchar("status", { length: 100 }), // e.g., "In Progress", "Completed"
+  reference_id: uuid("reference_id").notNull(), // Can be a goal, milestone, or task ID
+  reference_type: varchar("reference_type", { length: 50 }).notNull(), // e.g., "Goal", "Milestone", "Task"
+  status: statusEnum("status").default("Pending"), // Using pgEnum here
   progress_notes: text("progress_notes"),
   progress_date: timestamp("progress_date").defaultNow(),
+  is_deleted: boolean("is_deleted").default(false),
+  deleted_at: timestamp("deleted_at"),
+
   created_at: timestamp("created_at").defaultNow(),
-  updated_at: timestamp("updated_at").defaultNow().$onUpdateFn(() => new Date()),
+  updated_at: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdateFn(() => new Date()),
 });
 
 // Reminders Table
@@ -98,8 +143,13 @@ export const reminders = createTable("reminders", {
   reminder_date: timestamp("reminder_date").notNull(),
   message: text("message"),
   is_sent: boolean("is_sent").default(false),
+  is_deleted: boolean("is_deleted").default(false),
+  deleted_at: timestamp("deleted_at"),
+
   created_at: timestamp("created_at").defaultNow(),
-  updated_at: timestamp("updated_at").defaultNow().$onUpdateFn(() => new Date()),
+  updated_at: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdateFn(() => new Date()),
 });
 
 // Audit Logs Table

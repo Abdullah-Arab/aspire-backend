@@ -3,7 +3,12 @@
 import express, { Request, Response } from "express";
 import expressAsyncHandler from "express-async-handler";
 import { z } from "zod";
-import { validateData } from "../../middleware/validationMiddleware"; //
+import { validateData } from "../../middleware/validationMiddleware";
+import bcrypt from "bcryptjs";
+import User from "../../types/User";
+import { users } from "../../db/schema";
+import jwt from "jsonwebtoken";
+import { uuid } from "drizzle-orm/pg-core";
 
 // signup schema
 const signupSchema = z.object({
@@ -22,11 +27,10 @@ const authRouter = express.Router();
 
 // Register route
 authRouter.get(
-  "/",
+  "/register",
   validateData(signupSchema),
-
   expressAsyncHandler(async (req: Request, res: Response) => {
-    res.send("Register route");
+    const { email, password, name } = req.body;
   })
 );
 
