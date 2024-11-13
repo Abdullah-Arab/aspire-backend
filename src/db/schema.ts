@@ -11,16 +11,12 @@ import {
   uniqueIndex,
   pgEnum,
 } from "drizzle-orm/pg-core";
+import { priorityEnum, statusEnum } from "./enums";
+
 
 export const createTable = pgTableCreator((name) => `aspire_${name}`);
 
-// Define Enums
-export const priorityEnum = pgEnum("priority", ["High", "Medium", "Low"]);
-export const statusEnum = pgEnum("status", [
-  "In Progress",
-  "Completed",
-  "Pending",
-]);
+
 
 // Users Table
 export const users = createTable("users", {

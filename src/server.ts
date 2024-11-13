@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 
 import authRouter from "./routes/v1/auth";
 import asyncHandler from "express-async-handler";
+import { errorHandler } from "./middleware/errorHandler";
 
 dotenv.config();
 
@@ -12,6 +13,9 @@ dotenv.config();
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Global error handler
+app.use(errorHandler);
 
 // Specify the port number for the server
 const PORT = process.env.PORT;
