@@ -11,12 +11,16 @@ import {
   uniqueIndex,
   pgEnum,
 } from "drizzle-orm/pg-core";
-import { priorityEnum, statusEnum } from "./enums";
-
+// import { priorityEnum, statusEnum } from "./enums";
 
 export const createTable = pgTableCreator((name) => `aspire_${name}`);
 
-
+export const priorityEnum = pgEnum("priority", ["High", "Medium", "Low"]);
+export const statusEnum = pgEnum("status", [
+  "In Progress",
+  "Completed",
+  "Pending",
+]);
 
 // Users Table
 export const users = createTable("users", {
@@ -162,4 +166,4 @@ export const audit_logs = createTable("audit_logs", {
 });
 
 // Indexes (Optional: To Optimize Queries)
-uniqueIndex("users_email_idx").on(users.email);
+// uniqueIndex("users_email_idx").on(users.email);
