@@ -10,6 +10,7 @@ import { db } from "../../db/index"; // Import your db instance
 import { validateData } from "../../middleware/validationMiddleware";
 import { uuid } from "drizzle-orm/pg-core";
 import { eq } from "drizzle-orm";
+import User from "../../types/User";
 
 // JWT Secret and Expiry Time from environment variables
 const JWT_SECRET = process.env.JWT_SECRET!;
@@ -46,22 +47,31 @@ authRouter.post(
     const existingUser = await db
       .select()
       .from(users)
-      .where(eq(users.email,email))
+      .where(eq(users.email, email))
       .limit(1);
     if (existingUser.length > 0) {
-      return res.status(400).json({ message: "User already exists" });
+      res.status(400).json({ message: "User already exists" });
     }
 
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create new user with a unique ID
-    const newUser = await db.insert(users).values({
-      id: uuid(),
+    // Generate a unique ID
+    const id = uuid().toString(); // Convert UUID to string
+
+    // Create a new user
+    const newUser: User = {
+      id,
       email,
       password: hashedPassword,
       name,
-    });
+      created_at: null,
+      updated_at: null,
+      deleted_at: null,
+      is_deleted: null,
+    };
+    await db.insert(users).values(newUser);
 
     // Generate a token
     const token = generateToken(newUser.id);
@@ -88,13 +98,13 @@ authRouter.post(
       .where(eq(users.email, email))
       .limit(1);
     if (!user) {
-      return res.status(401).json({ message: "Invalid email or password" });
+      res.status(401).json({ message: "Invalid email or password" });
     }
 
     // Check if the password is correct
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) {
-      return res.status(401).json({ message: "Invalid email or password" });
+      res.status(401).json({ message: "Invalid email or password" });
     }
 
     // Generate a token
